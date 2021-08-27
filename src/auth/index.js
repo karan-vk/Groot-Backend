@@ -14,7 +14,7 @@ const authenticateJWT = (req, res, next) => {
 
         jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
             if (err) {
-                return res.sendStatus(403);
+                return res.status(403).json({ message: "access denied! punk" });
             }
 
             req.user = user;

@@ -6,7 +6,7 @@ datasource db {
 generator client {
     provider        = "prisma-client-js"
     binaryTargets   = ["native"]
-    previewFeatures = ["orderByRelation", "referentialActions"]
+    previewFeatures = ["orderByRelation"]
 }
 
 model User {
@@ -14,6 +14,8 @@ model User {
     email                    String                     @unique
     name                     String?
     password                 String
+    profilePic               String
+    profilePicThumb          String
     Tree                     Tree[]
     Fund                     Fund[]
     role                     String                     @default("user")
@@ -24,16 +26,16 @@ model User {
 }
 
 enum TreeCondition {
+    NeedsReplacement
     SlightlyBroken
     CompletelyBroken
     Perfect
-    NeedsReplacement
 }
 
 model Tree {
     id         String        @id @default(cuid())
-    name       String
-    discoverer User          @relation(fields: [userId], references: [id])
+    name       String        @unique
+    discoverer User          @relation(fields: [userId], references: [id], onDelete: SetNull)
     userId     String
     location   String
     type       String
@@ -54,22 +56,49 @@ enum FundStatus {
     Rejected
 }
 
-model Fund {
-    id        String   @id @default(cuid())
-    tree      Tree     @relation(fields: [treeId], references: [id])
-    by        User     @relation(fields: [userId], references: [id])
-    paymentId String[]
-    orderId   String
-    status    String
+enum Currency {
+    USD
+    EUR
+    GBP
+    INR
 
-    treeId String
-    userId String
+}
+
+model Fund {
+    id   String @id @default(cuid())
+    tree Tree   @relation(fields: [treeId], references: [id], onDelete: SetNull)
+    by   User   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+    orderId  String?
+    status   String
+    amount   Decimal
+    currency Currency
+
+    treeId    String
+    userId    String
+    Payment   Payment? @relation(fields: [paymentId], references: [id])
+    paymentId String?
+}
+
+model Payment {
+    id          String   @id @unique
+    entity      String
+    amount      Decimal
+    amount_paid Decimal
+    amount_due  Decimal
+    currency    Currency
+    receipt     String
+    status      String
+    attemps     Int
+    notes       Json
+    created_at  String
+    funds       Fund[]
 }
 
 model TreeLike {
     id   String @id @default(cuid())
-    tree Tree   @relation(fields: [treeId], references: [id])
-    by   User   @relation(fields: [userId], references: [id])
+    tree Tree   @relation(fields: [treeId], references: [id], onDelete: Cascade)
+    by   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     treeId String
     userId String
@@ -77,8 +106,8 @@ model TreeLike {
 
 model TreeScoring {
     id      String @id @default(cuid())
-    tree    Tree   @relation(fields: [treeId], references: [id])
-    by      User   @relation(fields: [userId], references: [id])
+    tree    Tree   @relation(fields: [treeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    by      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
     score   Int    @default(0)
     comment String
 
@@ -113,10 +142,11 @@ model Volunteering {
 
 model VolunteeringVerification {
     id             String       @id @default(cuid())
-    volunteering   Volunteering @relation(fields: [volunteeringId], references: [id])
-    verifier       User         @relation(fields: [userId], references: [id])
+    volunteering   Volunteering @relation(fields: [volunteeringId], references: [id], onDelete: Cascade)
+    verifier       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
     createdAt      DateTime     @default(now())
     updatedAt      DateTime     @updatedAt
     volunteeringId String
     userId         String
+    score          Int          @default(0)
 }

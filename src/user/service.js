@@ -1,6 +1,8 @@
 const db = require('../db')
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken");
+const s3 = require('../aws/s3');
+const { generateUserPic, generateThumb } = require('../utils');
 const createUser = async ({ email, name, password }) => {
     password = await bcrypt.hash(password, 10)
 
@@ -10,19 +12,25 @@ const createUser = async ({ email, name, password }) => {
             data: {
                 error: "email already exist"
             },
-            status: 400
+            status: 409
         }
     }
+    const profilePic = `https://avatars.dicebear.com/api/initials/${name.replace(" ", "%20")}.svg?radius=10`
+    console.log(profilePic)
     const user = await db.user.create({
         data: {
             email,
             name,
-            password
+            password,
+            profilePic: profilePic,
+            profilePicThumb: profilePic + "&height=100",
         },
         select: {
             email: true,
             name: true,
-            id: true
+            id: true,
+            profilePic: true,
+            profilePicThumb: true
         }
     })
     return { data: user, status: 201 }
@@ -131,9 +139,58 @@ const getUser = async (userId) => {
     }
 }
 
+const setUserPic = async (userId, pic) => {
+
+    const BUCKET_NAME = process.env.BUCKET_NAME
+    pic = await generateUserPic(pic)
+    const thumb = await generateThumb(pic)
+    const uploadParams = {
+        Bucket: BUCKET_NAME,
+        Key: `${userId}/Profile.png`,
+        Body: pic,
+        ACL: 'public-read'
+    };
+    const result = await s3
+        .upload(uploadParams)
+        .promise()
+        .catch((e) => console.log(e));
+    const uploadParamsThumb = {
+        Bucket: BUCKET_NAME,
+        Key: `${userId}/ProfileThumb.png`,
+        Body: thumb,
+        ACL: 'public-read'
+    }
+    const resultThumb = await s3
+        .upload(uploadParamsThumb)
+        .promise()
+        .catch((e) => console.log(e));
+    const picurl = `/image/user/${userId}`
+    const user = await db.user.update({
+        where: {
+            id: userId
+        },
+        data: {
+            profilePic: picurl,
+            profilePicThumb: picurl + "/thumb",
+        },
+        select: {
+            profilePic: true,
+            profilePicThumb: true
+        }
+    })
+    return {
+        data: user,
+        status: 200
+    }
+
+}
+
 
 module.exports = {
-    createUser, loginUser,
-    updateUser, deleteUser,
-    getUser
+    createUser,
+    loginUser,
+    updateUser,
+    deleteUser,
+    getUser,
+    setUserPic
 }

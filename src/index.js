@@ -1,7 +1,12 @@
 const express = require('express');
-var bodyParser = require('body-parser')
+const { compression, cors } = require('./plugins');
+
+
 // var methodOverride = require('method-override')
+const limiter = require("./auth/rate-limiter");
+const morgan = require('morgan');
 const server = express();
+
 server.use((error, req, res, next) => {
     res.status(error.status || 500).send({
         error: {
@@ -10,11 +15,24 @@ server.use((error, req, res, next) => {
         },
     });
 });
-server.use(bodyParser.urlencoded({
-    extended: true
+// server.use(morgan)
+server.use(compression)
+server.use(cors)
+server.use(limiter);
+
+server.use(express.urlencoded({
+    extended: true,
+    limit: '50mb'
 }))
-server.use(bodyParser.json())
+server.use(express.json())
 
 server.use("/user", require("./user"));
+server.use("/image", require("./image"));
+server.use("/tree", require("./tree"));
+server.get("/test", (_, res) => {
+    return res.json({ "test": "test" });
+})
+
+
 // server.use(methodOverride())
 module.exports = server;

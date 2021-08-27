@@ -1,26 +1,72 @@
-/*
-  Warnings:
+-- CreateEnum
+CREATE TYPE "TreeCondition" AS ENUM ('NeedsReplacement', 'SlightlyBroken', 'CompletelyBroken', 'Perfect');
 
-  - Added the required column `orderId` to the `Fund` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `status` to the `Fund` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `image` to the `Tree` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `thumb` to the `Tree` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateEnum
 CREATE TYPE "FundStatus" AS ENUM ('Pending', 'Approved', 'Refunded', 'Rejected');
 
 -- CreateEnum
+CREATE TYPE "Currency" AS ENUM ('USD', 'EUR', 'GBP', 'INR');
+
+-- CreateEnum
 CREATE TYPE "VolunteeringStatus" AS ENUM ('Interested', 'Evaluated', 'Accepted', 'Rejected', 'Completed', 'Reported');
 
--- AlterTable
-ALTER TABLE "Fund" ADD COLUMN     "orderId" TEXT NOT NULL,
-ADD COLUMN     "paymentId" TEXT[],
-ADD COLUMN     "status" TEXT NOT NULL;
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "name" TEXT,
+    "password" TEXT NOT NULL,
+    "profilePic" TEXT NOT NULL,
+    "profilePicThumb" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT E'user',
 
--- AlterTable
-ALTER TABLE "Tree" ADD COLUMN     "image" TEXT NOT NULL,
-ADD COLUMN     "thumb" TEXT NOT NULL;
+    PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Tree" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "location" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "thumb" TEXT NOT NULL,
+    "image" TEXT NOT NULL,
+    "conditions" "TreeCondition" NOT NULL,
+
+    PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Fund" (
+    "id" TEXT NOT NULL,
+    "orderId" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "amount" DECIMAL(65,30) NOT NULL,
+    "currency" "Currency" NOT NULL,
+    "treeId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "paymentId" TEXT,
+
+    PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Payment" (
+    "id" TEXT NOT NULL,
+    "entity" TEXT NOT NULL,
+    "amount" DECIMAL(65,30) NOT NULL,
+    "amount_paid" DECIMAL(65,30) NOT NULL,
+    "amount_due" DECIMAL(65,30) NOT NULL,
+    "currency" "Currency" NOT NULL,
+    "receipt" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "attemps" INTEGER NOT NULL,
+    "notes" JSONB NOT NULL,
+    "created_at" TEXT NOT NULL,
+
+    PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "TreeLike" (
@@ -67,6 +113,27 @@ CREATE TABLE "VolunteeringVerification" (
 
     PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User.email_unique" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Tree.name_unique" ON "Tree"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Payment.id_unique" ON "Payment"("id");
+
+-- AddForeignKey
+ALTER TABLE "Tree" ADD FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Fund" ADD FOREIGN KEY ("treeId") REFERENCES "Tree"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Fund" ADD FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Fund" ADD FOREIGN KEY ("paymentId") REFERENCES "Payment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "TreeLike" ADD FOREIGN KEY ("treeId") REFERENCES "Tree"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
