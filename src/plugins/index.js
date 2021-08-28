@@ -1,9 +1,10 @@
 const compression = require('./compression');
 const cors = require('./cors');
-const morgan = require('./morgan');
+const docs = require('./swagger');
+
 
 module.exports = {
     compression,
     cors,
-    morgan
+    docs
 }

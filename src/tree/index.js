@@ -31,4 +31,9 @@ tree.get("/feed", async (_, res) => {
     return res.status(status).json(data);
 })
 
+
 tree.use("/like", authenticateJWT, like);
+// tree.use("/like", like);
+
+
+module.exports = tree;

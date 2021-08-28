@@ -66,7 +66,7 @@ const feed = async (name, limit = 10, userId) => {
 
 
     });
-    trees.map(tree => {
+    trees.map(async tree => {
         const treeId = tree.id;
         tree.TotalFund = await db.fund.aggregate({
             where: {

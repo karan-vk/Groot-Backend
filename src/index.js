@@ -1,10 +1,11 @@
 const express = require('express');
-const { compression, cors } = require('./plugins');
+const { compression, cors, docs } = require('./plugins');
+
 
 
 // var methodOverride = require('method-override')
 const limiter = require("./auth/rate-limiter");
-const morgan = require('morgan');
+
 const server = express();
 
 server.use((error, req, res, next) => {
@@ -15,11 +16,11 @@ server.use((error, req, res, next) => {
         },
     });
 });
-// server.use(morgan)
+
 server.use(compression)
 server.use(cors)
 server.use(limiter);
-
+server.use("/docs", docs.UI, docs.DOCS);
 server.use(express.urlencoded({
     extended: true,
     limit: '50mb'
