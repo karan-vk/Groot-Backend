@@ -94,22 +94,20 @@ const myPayments = async (userId) => {
             id: userId
         },
         select: {
-            Fund: {
-                where: {
-                    status: "paid"
-                },
+            Payment: {
+
                 select: {
-                    by: {
-                        select: {
-                            id: true,
-                            name: true,
-                            profilePicThumb: true
-                        }
-                    },
+
                     amount: true,
                     status: true,
-                    createdAt: true,
                     currency: true,
+                    amount_paid: true,
+                    notes: true,
+                    receipt: true,
+                    id: true,
+                    created_at: true,
+                    updated_at: true,
+                    attemps: true,
 
 
                 }
@@ -117,7 +115,7 @@ const myPayments = async (userId) => {
         }
     })
     return {
-        data: myPayments.Fund,
+        data: myPayments.Payment,
         status: 200
     };
 }

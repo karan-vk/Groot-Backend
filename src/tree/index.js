@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { createTree, modifyTree, getTree, deleteTree } = require('./service');
 const feed = require("./feed");
 const like = require("./like");
+const { cache } = require("../plugins");
 
 const { authenticateJWT } = require('../auth');
 
@@ -26,7 +27,7 @@ tree.delete("/:id", authenticateJWT, async (req, res) => {
     const { status, data } = await deleteTree(req.params.id, req.user.user);
     return res.status(status).json(data);
 })
-tree.get("/feed", async (_, res) => {
+tree.get("/feed", cache.route({ name: "feed", expire: 30 }), async (_, res) => {
     const { status, data } = await feed();
     return res.status(status).json(data);
 })

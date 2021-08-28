@@ -2,13 +2,20 @@ const db = require('../../db');
 
 
 const createLike = async (userId, treeId) => {
-    let tree;
-    try {
-        tree = await db.tree.findUnique({ where: { id: treeId } });
-    } catch (error) {
+
+    const tree = await db.tree.findUnique({ where: { id: treeId }, rejectOnNotFound: false });
+    if (tree === null) {
         return {
             status: 404,
-            message: 'Tree not found'
+            data: { message: 'Tree not found' }
+        }
+
+    }
+    const treeLike = await db.treeLike.findUnique({ where: { id: `${treeId}-${userId}` }, rejectOnNotFound: false });
+    if (treeLike !== null) {
+        return {
+            status: 409,
+            data: { message: 'Already liked the tree' }
         }
 
     }
@@ -29,22 +36,18 @@ const createLike = async (userId, treeId) => {
     })
     return {
         status: 201,
-        message: `Liked the tree ${tree.name}`
+        data: `Liked the tree ${tree.name}`
     }
 }
 
 const deleteLike = async (userId, treeId) => {
-    try {
-        await db.treeLike.findUnique({
-            where: {
-                id: `${treeId}-${userId}`
-            }
-        })
-    } catch (error) {
+    const treeLike = await db.treeLike.findUnique({ where: { id: `${treeId}-${userId}` }, rejectOnNotFound: false });
+    if (treeLike === null) {
         return {
             status: 404,
-            message: 'Tree not found'
+            data: { message: 'Like not found' }
         }
+
     }
 
 
@@ -55,27 +58,23 @@ const deleteLike = async (userId, treeId) => {
     })
     return {
         status: 200,
-        message: `Unliked the tree`
+        data: { message: `Unliked the tree` }
     }
 }
 
 const getLike = async (userId, treeId) => {
-    try {
-        await db.treeLike.findUnique({
-            where: {
-                id: `${treeId}-${userId}`
-            }
-        })
-    } catch (error) {
+    const treeLike = await db.treeLike.findUnique({ where: { id: `${treeId}-${userId}` }, rejectOnNotFound: false });
+    if (treeLike === null) {
         return {
             status: 404,
-            message: 'Tree not found'
+            data: { message: 'Like not found' }
         }
+
     }
 
     return {
         status: 200,
-        message: `Liked the tree`
+        data: { message: `Liked the tree` }
     }
 }
 

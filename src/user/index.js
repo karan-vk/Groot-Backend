@@ -1,20 +1,11 @@
 const express = require('express');
 const multer = require('multer');
 const { authenticateJWT } = require('../auth');
-const { createUser, loginUser, updateUser, deleteUser, getUser, setUserPic } = require('./service');
+const { updateUser, deleteUser, getUser, setUserPic } = require('./service');
 const my = require('./my');
 const router = express.Router();
 const upload = multer({ dest: 'uploads/', storage: multer.memoryStorage() })
-router.post("/signup", async (req, res) => {
-    const user = await createUser(req.body);
 
-    return res.status(user.status).json(user.data);
-})
-router.get("/login", async (req, res) => {
-    const user = await loginUser(req.body);
-
-    return res.status(user.status).json(user.data);
-})
 router.put("/", authenticateJWT, async (req, res) => {
     const user = await updateUser(req.user.user, req.body);
     return res.status(user.status).json(user.data);
@@ -34,6 +25,8 @@ router.post("/set-profile-pic", authenticateJWT, upload.single('pic'), async (re
 })
 
 router.use("/my", authenticateJWT, my);
+
+router.use("/auth", require("./auth"));
 
 
 module.exports = router;

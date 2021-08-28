@@ -6,9 +6,10 @@ const createTree = async ({ conditions, location, name, type }, userId) => {
     if (alreadyExist > 0) {
         return {
             status: 409,
-            message: 'Tree already exist'
+            data: { message: 'Tree already exist' }
         }
     }
+
     const tree = await db.tree.create({
         data: {
             conditions,
@@ -41,25 +42,34 @@ const createTree = async ({ conditions, location, name, type }, userId) => {
     })
     return {
         status: 201,
-        message: tree,
+        data: tree,
     }
 }
 
 const modifyTree = async (id, { name, location, type, conditions }, userId) => {
-    const tree = await db.tree.findUnique({ where: { id } })
+    const tree = await db.tree.findUnique({ where: { id }, rejectOnNotFound: false })
+    if (tree === null) {
+        return {
+            status: 404,
+            data: { message: 'Tree not found' }
+        }
+    }
     if (tree.userId !== userId) {
         return {
             status: 403,
-            message: 'Forbidden'
+            data: 'Forbidden'
         }
     }
-    const alreadyExist = await db.tree.count({ where: { name: name } })
-    if (alreadyExist > 0) {
-        return {
-            status: 409,
-            message: 'Tree already exist'
+    if (tree.name !== name) {
+        const check = await db.tree.findUnique({ where: { name }, rejectOnNotFound: false })
+        if (check !== null) {
+            return {
+                status: 409,
+                data: { message: 'Tree already exist' }
+            }
         }
     }
+
     await db.tree.update({
         where: { id },
         data: {
@@ -71,22 +81,14 @@ const modifyTree = async (id, { name, location, type, conditions }, userId) => {
     })
     return {
         status: 200,
-        message: 'Success',
+        data: { message: 'Success' },
     }
 }
 
 
 const getTree = async (name) => {
-    const exists = await db.tree.count({ where: { name } })
-    if (exists === 0) {
-        return {
-            status: 404,
-            message: 'Tree not found'
-        }
-    }
-
-
     const tree = await db.tree.findUnique({
+        rejectOnNotFound: false,
         where: { name },
         select: {
             id: true,
@@ -141,13 +143,21 @@ const getTree = async (name) => {
 
         }
     })
-    return {
-        status: 200,
-        message: tree,
+    if (tree) {
+        return {
+            status: 200,
+            data: tree,
+        }
+
+    } else {
+        return {
+            status: 404,
+            data: { message: 'Tree not found' },
+        }
     }
 }
 
-const deleteTree = async (id) => {
+const deleteTree = async (id, userId) => {
     const tree = await db.tree.findUnique({ where: { id }, select: { userId: true } })
     if (tree.userId !== userId) {
         return {

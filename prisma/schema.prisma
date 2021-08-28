@@ -6,7 +6,7 @@ datasource db {
 generator client {
     provider        = "prisma-client-js"
     binaryTargets   = ["native"]
-    previewFeatures = ["orderByRelation"]
+    previewFeatures = ["orderByRelation", "referentialActions"]
 }
 
 model User {
@@ -23,6 +23,7 @@ model User {
     TreeScoring              TreeScoring[]
     Volunteering             Volunteering[]
     VolunteeringVerification VolunteeringVerification[]
+    Payment                  Payment[]
 }
 
 enum TreeCondition {
@@ -39,8 +40,8 @@ model Tree {
     userId     String
     location   String
     type       String
-    thumb      String
-    image      String
+    thumb      String        @default("https://res.cloudinary.com/ramachandra-engineering-and-technology/image/upload/v1630165593/photo_2021-08-28_21-16-15_biunn8.jpg")
+    image      String        @default("https://res.cloudinary.com/ramachandra-engineering-and-technology/image/upload/c_thumb,w_200,g_face/v1630165593/photo_2021-08-28_21-16-15_biunn8.jpg")
     conditions TreeCondition
 
     Fund         Fund[]
@@ -93,6 +94,9 @@ model Payment {
     notes       Json
     created_at  String
     funds       Fund[]
+    user        User     @relation(fields: [userId], references: [id])
+    updated_at  DateTime @updatedAt
+    userId      String
 }
 
 model TreeLike {

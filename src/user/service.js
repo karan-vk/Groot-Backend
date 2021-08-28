@@ -1,90 +1,9 @@
 const db = require('../db')
-const bcrypt = require("bcrypt")
-const jwt = require("jsonwebtoken");
+
 const s3 = require('../aws/s3');
 const { generateUserPic, generateThumb } = require('../utils');
-const createUser = async ({ email, name, password }) => {
-    password = await bcrypt.hash(password, 10)
 
-    const already = await db.user.count({ where: { email: email } })
-    if (already > 0) {
-        return {
-            data: {
-                error: "email already exist"
-            },
-            status: 409
-        }
-    }
-    const profilePic = `https://avatars.dicebear.com/api/initials/${name.replace(" ", "%20")}.svg?radius=10`
-    console.log(profilePic)
-    const user = await db.user.create({
-        data: {
-            email,
-            name,
-            password,
-            profilePic: profilePic,
-            profilePicThumb: profilePic + "&height=100",
-        },
-        select: {
-            email: true,
-            name: true,
-            id: true,
-            profilePic: true,
-            profilePicThumb: true
-        }
-    })
-    return { data: user, status: 201 }
-
-
-}
-
-const loginUser = async ({ email, password }) => {
-    const already = await db.user.count({ where: { email: email } })
-    if (already === 0) {
-        return {
-            data: {
-                error: "email does not exist"
-            },
-            status: 404
-        }
-    }
-    const user = await db.user.findUnique({
-        where: {
-            email: email
-        },
-        select: {
-            id: true,
-            role: true,
-            password: true
-        }
-    })
-    const auth = await bcrypt.compare(password, user.password)
-    if (auth) {
-        const token = await gerneateToken(user.id, user.role)
-        return {
-            data: {
-                token
-            },
-            status: 200
-        }
-
-    } else {
-        return {
-            data: { message: "Something went worong" },
-            status: 401
-        }
-    }
-}
-
-
-const gerneateToken = async (user, role) => {
-    const token = jwt.sign({ user, role }, process.env.JWT_SECRET, {
-        expiresIn: '24h'
-    })
-    return token
-}
-
-const updateUser = async (userId, { name, email }) => {
+const updateUser = async (userId, { name }) => {
 
     const user = await db.user.update({
         where: {
@@ -92,7 +11,6 @@ const updateUser = async (userId, { name, email }) => {
         },
         data: {
             name,
-            email,
         },
         select: {
             id: true,
@@ -187,8 +105,7 @@ const setUserPic = async (userId, pic) => {
 
 
 module.exports = {
-    createUser,
-    loginUser,
+
     updateUser,
     deleteUser,
     getUser,
