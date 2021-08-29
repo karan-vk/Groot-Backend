@@ -4,5 +4,5 @@ const PORT = process.env.PORT || 3000
 
 server.listen(PORT, (e) => {
 
-  console.log(`server listening on ${PORT}`)
+  console.log(`server listening on ${PORT} 🚀`)
 })
