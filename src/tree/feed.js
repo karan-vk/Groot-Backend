@@ -1,12 +1,19 @@
 const db = require('../db');
 
-const feed = async (name, limit = 10, userId) => {
-    const trees = await db.tree.findMany({
-        orderBy: {
-            TreeLike: {
-                _count: "desc"
+const feed = async (name = "TEST TREE", limit, userId = null) => {
+    if (!limit) {
+        limit = 10;
+    }
+    let allow = true
+    if (userId) {
+        allow = {
+            where: {
+                userId: userId
             }
-        },
+        }
+    }
+    const trees = await db.tree.findMany({
+
         cursor: {
             name: name
         },
@@ -56,11 +63,7 @@ const feed = async (name, limit = 10, userId) => {
                 }
             },
             userId: true,
-            TreeLike: {
-                where: {
-                    userId: userId
-                }
-            }
+            TreeLike: allow
         },
 
 

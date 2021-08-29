@@ -1,5 +1,5 @@
 const express = require('express');
-const { compression, cors, docs } = require('./plugins');
+const { compression, cors, docs, responseTime, } = require('./plugins');
 
 
 
@@ -26,6 +26,8 @@ server.use(express.urlencoded({
     limit: '50mb'
 }))
 server.use(express.json())
+server.use(responseTime)
+
 
 server.use("/user", require("./user"));
 server.use("/image", require("./image"));

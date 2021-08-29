@@ -211,7 +211,7 @@ const emailVerification = async (email, code) => {
         }
     }
     const getcode = await redis.get(`verify:${user.email}`)
-    console.log(getcode)
+    // console.log(getcode)
     if (getcode != code) {
         return {
             data: {

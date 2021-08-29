@@ -34,7 +34,7 @@ auth.post("/change-password", authenticateJWT, async (req, res) => {
     return res.status(user.status).json(user.data);
 })
 auth.post("/verify-email", async (req, res) => {
-    console.log(req.body)
+    // console.log(req.body)
     const user = await emailVerification(req.body.email, req.body.code);
 
     return res.status(user.status).json(user.data);

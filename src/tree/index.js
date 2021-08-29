@@ -4,7 +4,7 @@ const feed = require("./feed");
 const like = require("./like");
 const { cache } = require("../plugins");
 
-const { authenticateJWT } = require('../auth');
+const { authenticateJWT, authenticateJWTOPT } = require('../auth');
 
 const tree = Router();
 
@@ -18,7 +18,7 @@ tree.put("/:id", authenticateJWT, async (req, res) => {
     return res.status(status).json(data);
 })
 
-tree.get("/:name", authenticateJWT, async (req, res) => {
+tree.get("/get/:name", authenticateJWT, async (req, res) => {
     const { status, data } = await getTree(req.params.name);
     return res.status(status).json(data);
 })
@@ -27,13 +27,15 @@ tree.delete("/:id", authenticateJWT, async (req, res) => {
     const { status, data } = await deleteTree(req.params.id, req.user.user);
     return res.status(status).json(data);
 })
-tree.get("/feed", cache.route({ name: "feed", expire: 30 }), async (_, res) => {
-    const { status, data } = await feed();
+tree.get("/feed", authenticateJWTOPT, async (req, res) => {
+    const { status, data } = await feed(req.body.cursor, Number(req.body.limit), req.user.user);
     return res.status(status).json(data);
+    // return res.sendStatus(200);
 })
 
 
-tree.use("/like", authenticateJWT, like);
+// tree.use();
+tree.all("/like", authenticateJWT, like)
 // tree.use("/like", like);
 
 

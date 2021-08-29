@@ -1,11 +1,4 @@
 const jwt = require("jsonwebtoken");
-var express = require('express')
-var app = express()
-
-app.use(function (req, res, next) {
-    console.log('Time:', Date.now())
-    next()
-})
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
@@ -24,5 +17,16 @@ const authenticateJWT = (req, res, next) => {
         res.sendStatus(401);
     }
 };
+const authenticateJWTOPT = (req, res, next) => {
 
-module.exports = { authenticateJWT };
+
+    if (req.headers.authorization) {
+        authenticateJWT(req, res, next);
+    } else {
+        next()
+    }
+
+
+}
+
+module.exports = { authenticateJWT, authenticateJWTOPT };
