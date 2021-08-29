@@ -15,18 +15,19 @@ const senderStream = (res, params) => {
 const senderBuffer = (res, params, nocache = false) => {
 
     if (!nocache) {
-        redis.exists(params.Key).then(exist => {
-            if (exist == 1) {
+        // redis.exists(params.Key).then(exist => {
+        // if (exist == 1) {
 
-                redis.getBuffer(params.Key).then(buffer => {
-                    res.write(buffer);
-                    return res.end();
-                }).catch(console.log);
-            } else {
+        redis.getBuffer(params.Key).then(buffer => {
+            redis.expire(params.Key, 60);
+            res.write(buffer);
+            return res.end();
+        }).catch((err) => { });
+        // } else {
 
-                console.log('cache miss');
-            }
-        })
+        //     console.log('cache miss');
+        // }
+        // })
     }
 
     S3.getObject(params, (err, data) => {

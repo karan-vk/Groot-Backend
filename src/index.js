@@ -19,7 +19,7 @@ server.use((error, req, res, next) => {
 
 server.use(compression)
 server.use(cors)
-// server.use(limiter);
+server.use(limiter);
 server.use("/docs", docs.UI, docs.DOCS);
 server.use(express.urlencoded({
     extended: true,
@@ -33,6 +33,7 @@ server.use("/user", require("./user"));
 server.use("/image", require("./image"));
 server.use("/tree", require("./tree"));
 server.use("/fund", require("./fund"));
+server.use("/payments", require("./payments"));
 server.get("/test", (_, res) => {
     return res.json({ "test": "test" });
 })

@@ -92,7 +92,7 @@ model Payment {
     receipt     String
     status      String
     attemps     Int
-    notes       Json
+    notes       String[]
     created_at  String
     funds       Fund[]
     user        User     @relation(fields: [userId], references: [id])
