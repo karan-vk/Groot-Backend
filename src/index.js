@@ -19,14 +19,14 @@ server.use((error, req, res, next) => {
 
 server.use(compression)
 server.use(cors)
-server.use(limiter);
+// server.use(limiter);
 server.use("/docs", docs.UI, docs.DOCS);
 server.use(express.urlencoded({
     extended: true,
     limit: '50mb'
 }))
 server.use(express.json())
-server.use(responseTime)
+// server.use(responseTime)
 
 
 server.use("/user", require("./user"));

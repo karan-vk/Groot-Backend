@@ -1,5 +1,5 @@
 const responseTime = require('response-time');
-const { loggerInflux } = require('./influxdb');
+// const { loggerInflux } = require('./influxdb');
 
 
-module.exports = responseTime(loggerInflux)
+module.exports = responseTime()

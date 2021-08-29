@@ -13,11 +13,20 @@ const senderStream = (res, params) => {
         .send()
 }
 const senderBuffer = (res, params, nocache = false) => {
+
     if (!nocache) {
-        redis.getBuffer(params.Key).then(buffer => {
-            res.write(buffer);
-            return res.end();
-        }).catch(() => { });
+        redis.exists(params.Key).then(exist => {
+            if (exist == 1) {
+
+                redis.getBuffer(params.Key).then(buffer => {
+                    res.write(buffer);
+                    return res.end();
+                }).catch(console.log);
+            } else {
+
+                console.log('cache miss');
+            }
+        })
     }
 
     S3.getObject(params, (err, data) => {
