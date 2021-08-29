@@ -50,7 +50,7 @@ const createUser = async ({ email, name, password }) => {
             profilePic: true,
             profilePicThumb: true
         }
-    })
+    }).catch(console.log)
     const sent = await sendVerificationEmail({ email: user.email, name: user.name })
     sent.status = 201
     return sent
