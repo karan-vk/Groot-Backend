@@ -1,5 +1,5 @@
 const express = require('express');
-const { compression, cors, docs, responseTime, } = require('./plugins');
+const { compression, cors, docs, responseTime, cache } = require('./plugins');
 
 
 
@@ -32,9 +32,17 @@ server.use(responseTime)
 server.use("/user", require("./user"));
 server.use("/image", require("./image"));
 server.use("/tree", require("./tree"));
+server.use("/fund", require("./fund"));
 server.get("/test", (_, res) => {
     return res.json({ "test": "test" });
 })
+server.use(cache.route({
+    expire: {
+        404: 5,
+        409: 5,
+        default: 0
+    }
+}))
 
 
 // server.use(methodOverride())

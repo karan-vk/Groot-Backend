@@ -57,7 +57,7 @@ const deleteLike = async (userId, treeId) => {
         }
     })
     return {
-        status: 200,
+        status: 204,
         data: { message: `Unliked the tree` }
     }
 }

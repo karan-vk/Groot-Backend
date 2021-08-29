@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const { S3 } = require('../aws');
+const { redis } = require('../redis');
 const image = Router();
 
 const senderStream = (res, params) => {
@@ -11,11 +12,19 @@ const senderStream = (res, params) => {
     })
         .send()
 }
-const senderBuffer = (res, params) => {
+const senderBuffer = (res, params, nocache = false) => {
+    if (!nocache) {
+        redis.getBuffer(params.Key).then(buffer => {
+            res.write(buffer);
+            return res.end();
+        }).catch(() => { });
+    }
+
     S3.getObject(params, (err, data) => {
         if (err) {
             res.status(400).json(err);
         } else {
+            if (!nocache) { redis.setBuffer(params.Key, data.Body, "EX", 60); }
             res.write(data.Body);
             res.end();
         }
@@ -42,7 +51,7 @@ image.get("/user/:user/thumb", (req, res) => {
         Key: `${user}/ProfileThumb.png`
     };
     if (req.query.media === 'true') {
-        return senderBuffer(res, params);
+        return senderBuffer(res, params, req.query.nocache);
     }
     return senderStream(res, params)
 })

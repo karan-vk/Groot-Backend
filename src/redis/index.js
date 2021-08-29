@@ -4,5 +4,7 @@ const redis = new Redis({
     port: process.env.REDIS_PORT,
     password: process.env.REDIS_PASSWORD
 });
-
+redis.on('connected', () => {
+    console.log("Redis connected");
+})
 module.exports = { redis }

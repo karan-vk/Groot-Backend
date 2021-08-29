@@ -18,8 +18,6 @@ const authenticateJWT = (req, res, next) => {
     }
 };
 const authenticateJWTOPT = (req, res, next) => {
-
-
     if (req.headers.authorization) {
         authenticateJWT(req, res, next);
     } else {

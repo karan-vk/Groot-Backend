@@ -17,7 +17,7 @@ const loggerInflux = (req, res, time) => {
     // console.log(point.fields)
     writeApi.writePoint(point)
     x += 1
-    if (x == 1) {
+    if (x == 3) {
         writeApi.flush()
         x = 0
     }
