@@ -16,6 +16,7 @@ model User {
     password                 String
     profilePic               String
     profilePicThumb          String
+    isEmailVerified          Boolean                    @default(false)
     Tree                     Tree[]
     Fund                     Fund[]
     role                     String                     @default("user")

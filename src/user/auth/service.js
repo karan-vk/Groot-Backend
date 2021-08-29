@@ -7,7 +7,7 @@ const { sendEmail } = require("./email")
 
 const sendVerificationEmail = async ({ email, name }) => {
     const code = Math.floor(Math.random() * 1000000)
-    const setcode = await redis.set(`verify:${email}`, code, 'EX', 60 * 30)
+    const setcode = await redis.set(`verify:${email}`, code, 'EX', 60 * 60 * 24)
     if (setcode != 'OK') {
         return {
             data: {
@@ -17,7 +17,7 @@ const sendVerificationEmail = async ({ email, name }) => {
         }
     }
     const content = await verifyGenerator(code, name)
-    const sent = await sendEmail({ email: email, content, name: name, subject: "Verify Email", type: "verifyEmail" })
+    const sent = sendEmail({ email: email, content, name: name, subject: "Verify Email", type: "verifyEmail" })
     return sent
 }
 
@@ -34,7 +34,6 @@ const createUser = async ({ email, name, password }) => {
         }
     }
     const profilePic = `https://avatars.dicebear.com/api/initials/${name.replace(" ", "%20")}.svg?radius=10`
-    console.log(profilePic)
     const user = await db.user.create({
         data: {
             email,
@@ -50,9 +49,8 @@ const createUser = async ({ email, name, password }) => {
             profilePic: true,
             profilePicThumb: true
         }
-    }).catch(console.log)
+    })
     const sent = await sendVerificationEmail({ email: user.email, name: user.name })
-    sent.status = 201
     return sent
 }
 
@@ -99,6 +97,7 @@ const gerneateToken = async (user, role, time = "24h") => {
     const token = jwt.sign({ user, role }, process.env.JWT_SECRET, {
         expiresIn: time
     })
+
     return token
 }
 
@@ -169,6 +168,14 @@ const changePassword = async ({ id, password, type }) => {
     if (type === "reset") {
         const resetPassword = await bcrypt.hash(password, 10)
         user = await db.user.update({ where: { id: id }, data: { password: resetPassword } })
+        const token = await gerneateToken(user.id, user.role)
+        return {
+            data: {
+                token,
+                message: "password changed successfully"
+            },
+            status: 200
+        }
     } else {
         const auth = await bcrypt.compare(password, user.password)
         if (!auth) {
@@ -181,8 +188,46 @@ const changePassword = async ({ id, password, type }) => {
         } else {
             const newPassword = await bcrypt.hash(password, 10)
             user = await db.user.update({ where: { id: id }, data: { password: newPassword } })
+            return {
+                data: {
+                    message: "password changed successfully"
+                },
+                status: 200
+            }
         }
 
+    }
+}
+
+const emailVerification = async (email, code) => {
+
+    const user = await db.user.findUnique({ where: { email: email }, rejectOnNotFound: false })
+    if (user === null) {
+        return {
+            data: {
+                error: "email does not exist"
+            },
+            status: 404
+        }
+    }
+    const getcode = await redis.get(`verify:${user.email}`)
+    console.log(getcode)
+    if (getcode != code) {
+        return {
+            data: {
+                error: "code does not match"
+            },
+            status: 401
+        }
+    }
+    const verified = await db.user.update({ where: { id: user.id }, data: { isEmailVerified: true } })
+    const token = await gerneateToken(verified.id, verified.role)
+    return {
+        status: 200,
+        data: {
+            token: token,
+            message: "email verified"
+        }
     }
 }
 
@@ -191,6 +236,7 @@ module.exports = {
     loginUser,
     sendResetPasswordEmail,
     verifyResetPassword,
-    changePassword
+    changePassword,
+    emailVerification
 
 }
