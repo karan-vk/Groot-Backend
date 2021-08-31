@@ -5,12 +5,12 @@ var instance = new Razorpay({
     key_secret: process.env.RAZORPAY_SECRET,
 });
 
-const payment = async (amount, funds, userId) => {
+const payment = async (amount) => {
     var options = {
         amount: amount,  // amount in the smallest currency unit
         currency: "INR",
-        receipt: `${userId}-${Math.floor(Math.random() * 1000000)}`,
-        notes: { userId: userId, funds: funds },
+        receipt: `${Math.floor(Math.random() * 1000000)}`,
+        // notes: { userId: userId, funds: funds },
 
     };
     let orderinfo
@@ -28,23 +28,23 @@ const payment = async (amount, funds, userId) => {
 
 }
 
-const createPayment = async (funds, userId) => {
-    const amount = await db.fund.aggregate({
-        where: {
-            id: {
-                in: funds
-            }
-        },
-        _sum: {
-            amount: true
-        }
-    })
-    amount._sum.amount
-    let fundsAggregate = ""
-    funds.forEach(element => {
-        fundsAggregate += element + " "
-    });
-    const x = await payment(amount._sum.amount, fundsAggregate, userId);
+const createPayment = async (amount, userId) => {
+    // const amount = await db.fund.aggregate({
+    //     where: {
+    //         id: {
+    //             in: funds
+    //         }
+    //     },
+    //     _sum: {
+    //         amount: true
+    //     }
+    // })
+    // amount._sum.amount
+    // let fundsAggregate = ""
+    // funds.forEach(element => {
+    //     fundsAggregate += element + " "
+    // });
+    const x = await payment(amount);
     return {
         status: 200,
         data: amount._sum.amount

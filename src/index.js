@@ -1,6 +1,7 @@
 const express = require('express');
 const { compression, cors, docs, responseTime, cache } = require('./plugins');
 const limiter = require("./auth/rate-limiter");
+const throttle = require("./auth/rate-throttle");
 const forceHttps = require('@crystallize/elasticloadbalancer-express-force-https');
 
 
@@ -18,6 +19,7 @@ server.use((error, req, res, next) => {
 server.use(compression)
 server.use(cors)
 server.use(limiter);
+server.use(throttle);
 server.use("/docs", docs.UI, docs.DOCS);
 server.use(forceHttps());
 server.use(express.urlencoded({
