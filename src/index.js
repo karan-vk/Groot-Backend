@@ -1,10 +1,8 @@
 const express = require('express');
 const { compression, cors, docs, responseTime, cache } = require('./plugins');
-
-
-
-// var methodOverride = require('method-override')
 const limiter = require("./auth/rate-limiter");
+const forceHttps = require('@crystallize/elasticloadbalancer-express-force-https');
+
 
 const server = express();
 
@@ -21,12 +19,13 @@ server.use(compression)
 server.use(cors)
 server.use(limiter);
 server.use("/docs", docs.UI, docs.DOCS);
+server.use(forceHttps());
 server.use(express.urlencoded({
     extended: true,
     limit: '50mb'
 }))
 server.use(express.json())
-// server.use(responseTime)
+server.use(responseTime)
 
 
 server.use("/user", require("./user"));
@@ -34,9 +33,28 @@ server.use("/image", require("./image"));
 server.use("/tree", require("./tree"));
 server.use("/fund", require("./fund"));
 server.use("/payments", require("./payments"));
-server.get("/test", (_, res) => {
-    return res.json({ "test": "test" });
-})
+server.get("/", cache.route(60 * 60 * 24), (req, res) => {
+    res.status(200).sendFile(__dirname + "/index/index.html");
+});
+server.use(cache.route(60 * 60 * 24), (req, res, next) => {
+    res.status(404);
+
+
+    if (req.accepts('html')) {
+        res.sendFile(__dirname + "/index/404.html");
+        return;
+    }
+
+    // respond with json
+    if (req.accepts('json')) {
+        res.json({ error: 'Not found' });
+        return;
+    }
+
+    // default to plain-text. send()
+    res.type('txt').send('Not found');
+});
+
 server.use(cache.route({
     expire: {
         404: 5,
@@ -45,6 +63,4 @@ server.use(cache.route({
     }
 }))
 
-
-// server.use(methodOverride())
 module.exports = server;

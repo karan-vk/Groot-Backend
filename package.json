@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@crystallize/elasticloadbalancer-express-force-https": "^2.4.0",
     "@influxdata/influxdb-client": "^1.17.0",
     "@prisma/client": "^2.30.0",
     "aws-sdk": "^2.977.0",

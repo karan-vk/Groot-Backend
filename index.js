@@ -1,8 +1,20 @@
 require('dotenv').config()
 const server = require('./src')
 const PORT = process.env.PORT || 3000
+const fs = require('fs');
+const path = require('path');
 
-server.listen(PORT, (e) => {
+const privateKey = fs.readFileSync(path.join(__dirname, 'sslcert/selfsigned.key'));
+const certificate = fs.readFileSync(path.join(__dirname, 'sslcert/selfsigned.crt'));
+const http = require('http');
+const https = require('https');
 
-  console.log(`server listening on ${PORT} 🚀`)
-})
+const credentials = { key: privateKey, cert: certificate };
+const httpServer = http.createServer(server);
+const httpsServer = https.createServer(credentials, server);
+// server.listen(PORT, (e) => {
+
+//   console.log(`server listening on ${PORT} 🚀`)
+// })
+httpServer.listen(PORT);
+httpsServer.listen(8443);

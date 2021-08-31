@@ -44,10 +44,10 @@ const createPayment = async (funds, userId) => {
     funds.forEach(element => {
         fundsAggregate += element + " "
     });
-    const x = await payment(10000, fundsAggregate, userId);
+    const x = await payment(amount._sum.amount, fundsAggregate, userId);
     return {
         status: 200,
-        data: x
+        data: amount._sum.amount
     }
 
 
