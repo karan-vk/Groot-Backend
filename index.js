@@ -17,4 +17,7 @@ const httpsServer = https.createServer(credentials, server);
 //   console.log(`server listening on ${PORT} 🚀`)
 // })
 httpServer.listen(PORT);
-httpsServer.listen(8443);
+// https.createServer(httpsServer, server)
+//   .listen(443, () => {
+//     console.log('server running at ' + 443)
+//   })
