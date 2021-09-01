@@ -47,7 +47,7 @@ const createPayment = async (amount, userId) => {
     const x = await payment(amount);
     return {
         status: 200,
-        data: amount._sum.amount
+        data: x
     }
 
 
